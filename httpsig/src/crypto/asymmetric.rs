@@ -173,12 +173,16 @@ impl super::SigningKey for SecretKey {
                 Ok(sig.as_ref().to_vec())
             }
             Self::EcdsaSecp256k1(sk) => {
-                use k256::ecdsa::signature::Signer;
-
                 debug!("Sign EcdsaSecp256k1");
                 let signing_key: k256::ecdsa::SigningKey = sk.into();
-                let sig: k256::ecdsa::Signature = signing_key.sign(data);
-                Ok(sig.to_bytes().to_vec())
+                let (signature, recid): (k256::ecdsa::Signature, k256::ecdsa::RecoveryId) =
+                    signing_key.sign_prehash_recoverable(data).map_err(|_| {
+                        HttpSigError::InvalidSignature("ECDSA/secp256k1 signing error".to_string())
+                    })?;
+                let mut sig = Vec::with_capacity(65);
+                sig.extend_from_slice(signature.to_bytes().as_slice());
+                sig.push(recid.to_byte());
+                Ok(sig)
             }
         }
     }
