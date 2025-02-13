@@ -71,7 +71,7 @@ impl SecretKey {
                 Ok(Self::Ed25519(sk))
             }
             AlgorithmName::EcdsaSecp256k1 => {
-                debug!("Read EcdsaSecp256k1 private key");
+                // debug!("Read EcdsaSecp256k1 private key");
                 let sk = k256::SecretKey::from_bytes(bytes.into())
                     .map_err(|e| HttpSigError::ParsePrivateKeyError(e.to_string()))?;
                 Ok(Self::EcdsaSecp256k1(sk))
@@ -173,7 +173,7 @@ impl super::SigningKey for SecretKey {
                 Ok(sig.as_ref().to_vec())
             }
             Self::EcdsaSecp256k1(sk) => {
-                debug!("Sign EcdsaSecp256k1");
+                // debug!("Sign EcdsaSecp256k1");
                 let signing_key: k256::ecdsa::SigningKey = sk.into();
                 let (signature, recid): (k256::ecdsa::Signature, k256::ecdsa::RecoveryId) =
                     signing_key.sign_prehash_recoverable(data).map_err(|_| {
